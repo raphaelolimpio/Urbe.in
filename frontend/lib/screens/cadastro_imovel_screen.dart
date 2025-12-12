@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/imovel_model.dart';
 import '../services/api_service.dart';
+import '../core/theme/app_colors.dart';
+import '../core/theme/app_text_styles.dart'; 
+import '../components/primary_button.dart';
 
 class CadastroImovelScreen extends StatefulWidget {
   const CadastroImovelScreen({super.key});
@@ -24,9 +26,7 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
 
   Future<void> _salvarImovel() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
-
 
     final novoImovel = Imovel(
       investidorId: 1, 
@@ -44,13 +44,12 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
 
     if (imovelSalvo != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Imóvel salvo com sucesso!'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Imóvel salvo!'), backgroundColor: AppColors.primary),
       );
-    
       Navigator.pop(context, true); 
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao salvar imóvel.'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Erro ao salvar.'), backgroundColor: AppColors.riskHigh),
       );
     }
   }
@@ -58,11 +57,15 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Novo Imóvel', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        title: Text('Novo Imóvel', style: AppTextStyles.titleList),
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -77,7 +80,7 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
               _buildTextField(
                 controller: _enderecoController,
                 label: 'Endereço Completo',
-                icon: Icons.location_on,
+                icon: Icons.location_on_outlined,
               ),
               const SizedBox(height: 16),
               Row(
@@ -85,7 +88,7 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
                   Expanded(
                     child: _buildTextField(
                       controller: _latController,
-                      label: 'Latitude (Ex: -23.55)',
+                      label: 'Latitude',
                       icon: Icons.map,
                       keyboardType: TextInputType.number,
                     ),
@@ -94,7 +97,7 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
                   Expanded(
                     child: _buildTextField(
                       controller: _lonController,
-                      label: 'Longitude (Ex: -46.63)',
+                      label: 'Longitude',
                       icon: Icons.map,
                       keyboardType: TextInputType.number,
                     ),
@@ -124,18 +127,12 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _salvarImovel,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00C853),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('SALVAR IMÓVEL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
+              
+              PrimaryButton(
+                text: "Salvar Imóvel",
+                onPressed: _salvarImovel,
+                isLoading: _isLoading,
+                icon: Icons.save_outlined,
               ),
             ],
           ),
@@ -153,15 +150,24 @@ class _CadastroImovelScreenState extends State<CadastroImovelScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      style: AppTextStyles.body,
       decoration: InputDecoration(
         labelText: label,
-        border: const OutlineInputBorder(),
-        prefixIcon: Icon(icon),
+        labelStyle: AppTextStyles.caption.copyWith(fontSize: 14), 
+        filled: true,
+        fillColor: AppColors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        prefixIcon: Icon(icon, color: AppColors.textSecondary),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Campo obrigatório';
-        }
+        if (value == null || value.isEmpty) return 'Campo obrigatório';
         return null;
       },
     );
