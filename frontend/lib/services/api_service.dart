@@ -81,4 +81,20 @@ class ApiService {
       return [];
     }
   }
+  Future<Map<String, dynamic>> getDashboardMetrics() async {
+    final url = Uri.parse('$baseUrl/dashboard');
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        print('Erro no dashboard: ${response.body}');
+        return {"total_imoveis": 0, "valor_patrimonio": 0.0, "potencial_receita": 0.0};
+      }
+    } catch (e) {
+      print('Erro de conexão: $e');
+      return {"total_imoveis": 0, "valor_patrimonio": 0.0, "potencial_receita": 0.0};
+    }
+  }
 }
