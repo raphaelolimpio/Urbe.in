@@ -3,6 +3,7 @@ import '../models/imovel_model.dart';
 import '../services/api_service.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
+import '../core/utils/app_formatters.dart'; // <--- IMPORTANTE
 import '../components/finance_card.dart';
 import '../components/imovel_card.dart';
 import 'cadastro_imovel_screen.dart';
@@ -42,6 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Tratamento seguro dos valores
+    double patrimonio = double.tryParse(_metrics['valor_patrimonio'].toString()) ?? 0.0;
+    double receita = double.tryParse(_metrics['potencial_receita'].toString()) ?? 0.0;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -76,7 +81,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       child: FinanceCard(
                         label: "Patrimônio Total", 
-                        value: "R\$ ${(_metrics['valor_patrimonio'] ?? 0).toStringAsFixed(0)}",
+                        // --- FORMATAÇÃO APLICADA ---
+                        value: AppFormatters.formatCurrency(patrimonio),
                         icon: Icons.account_balance_wallet,
                       ),
                     ),
@@ -84,7 +90,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       child: FinanceCard(
                         label: "Receita Mensal (Est.)", 
-                        value: "R\$ ${(_metrics['potencial_receita'] ?? 0).toStringAsFixed(0)}",
+                        // --- FORMATAÇÃO APLICADA ---
+                        value: AppFormatters.formatCurrency(receita),
                         icon: Icons.trending_up,
                       ),
                     ),
@@ -128,8 +135,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     final imovel = snapshot.data![index];
                     return ImovelCard(
                       imovel: imovel,
-                      onTap: () {
-                         Navigator.push(
+                      onTap: () async {
+                         // Aguarda o retorno para recarregar caso tenha editado (futuro)
+                         await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => DetalheImovelScreen(imovel: imovel)),
                           );

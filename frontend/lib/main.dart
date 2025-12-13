@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/screens/cadastro_investidor_screen.dart';
+
 import 'package:frontend/screens/dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -24,7 +24,6 @@ class UrbeApp extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      // Aqui trocamos o Scaffold provisório pela nossa tela real
       home: const DashboardScreen(), 
     );
   }

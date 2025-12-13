@@ -48,8 +48,9 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>?> analisarVocacao(int imovelId) async {
-    final url = Uri.parse('$baseUrl/imoveis/$imovelId/analisar');
+  Future<Map<String, dynamic>?> analisarVocacao(int imovelId, {int raio = 250}) async {
+    final url = Uri.parse('$baseUrl/imoveis/$imovelId/analisar?raio=$raio');
+    
     try {
       final response = await http.post(url);
 
