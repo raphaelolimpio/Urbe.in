@@ -6,18 +6,13 @@ class PoiInfoCard extends StatelessWidget {
   final Map<String, dynamic> poi;
   final VoidCallback onClose;
 
-  const PoiInfoCard({
-    super.key,
-    required this.poi,
-    required this.onClose,
-  });
+  const PoiInfoCard({super.key, required this.poi, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
-
     final nome = (poi['nome'] ?? 'Local Desconhecido').toString();
     final tipo = (poi['tipo'] ?? '').toString();
-    
+
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -25,11 +20,9 @@ class PoiInfoCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Ícone Grande
             _buildIcon(tipo),
             const SizedBox(width: 12),
-            
-            // Textos
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +30,9 @@ class PoiInfoCard extends StatelessWidget {
                 children: [
                   Text(
                     nome,
-                    style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -48,12 +43,11 @@ class PoiInfoCard extends StatelessWidget {
                 ],
               ),
             ),
-            
-            // Botão Fechar
+
             IconButton(
               icon: const Icon(Icons.close, size: 20, color: Colors.grey),
               onPressed: onClose,
-            )
+            ),
           ],
         ),
       ),
@@ -66,19 +60,28 @@ class PoiInfoCard extends StatelessWidget {
     String t = tipo.toLowerCase();
 
     if (t.contains('restaurant') || t.contains('cafe') || t.contains('bar')) {
-       icone = Icons.restaurant; cor = Colors.orange;
+      icone = Icons.restaurant;
+      cor = Colors.orange;
     } else if (t.contains('school') || t.contains('university')) {
-       icone = Icons.school; cor = Colors.blue;
+      icone = Icons.school;
+      cor = Colors.blue;
     } else if (t.contains('hospital') || t.contains('clinic')) {
-       icone = Icons.local_hospital; cor = Colors.redAccent;
+      icone = Icons.local_hospital;
+      cor = Colors.redAccent;
     } else if (t.contains('gym')) {
-       icone = Icons.fitness_center; cor = Colors.purple;
+      icone = Icons.fitness_center;
+      cor = Colors.purple;
     } else if (t.contains('clothes') || t.contains('fashion') || t == 'moda') {
-       icone = Icons.checkroom; cor = Colors.pinkAccent; 
-    } else if (t.contains('shop') || t.contains('market') || t.contains('mall')) {
-       icone = Icons.shopping_bag; cor = AppColors.primary;
+      icone = Icons.checkroom;
+      cor = Colors.pinkAccent;
+    } else if (t.contains('shop') ||
+        t.contains('market') ||
+        t.contains('mall')) {
+      icone = Icons.shopping_bag;
+      cor = AppColors.primary;
     } else if (t.contains('office') || t.contains('corporativo')) {
-       icone = Icons.business; cor = Colors.indigo;
+      icone = Icons.business;
+      cor = Colors.indigo;
     }
 
     return Container(
@@ -86,7 +89,6 @@ class PoiInfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cor.withOpacity(0.1),
         shape: BoxShape.circle,
-        // Sem borda no card para ficar mais clean
       ),
       child: Icon(icone, color: cor, size: 24),
     );

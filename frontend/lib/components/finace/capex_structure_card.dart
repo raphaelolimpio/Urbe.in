@@ -5,14 +5,14 @@ import '../../core/utils/app_formatters.dart';
 class CapexStructureCard extends StatelessWidget {
   final double valorCompra;
   final double valorReforma;
-  final double depreciacaoAnual;
+  final double? depreciacaoAnual;
   final double investimentoTotal;
 
   const CapexStructureCard({
     super.key,
     required this.valorCompra,
     required this.valorReforma,
-    required this.depreciacaoAnual,
+    this.depreciacaoAnual,
     required this.investimentoTotal,
   });
 
@@ -51,7 +51,7 @@ class CapexStructureCard extends StatelessWidget {
           const Divider(height: 24),
           _rowValue(
             "Depreciação Anual (Est.)",
-            depreciacaoAnual,
+            depreciacaoAnual ?? 0,
             isNegative: true,
           ),
           const Divider(height: 24),

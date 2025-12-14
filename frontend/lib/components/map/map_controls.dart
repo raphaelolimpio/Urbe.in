@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 
-
 class MapControls extends StatelessWidget {
-  final bool isSatellite;
-  final VoidCallback onToggleSatellite;
   final VoidCallback onResetNorth;
   final VoidCallback onRecenter;
 
   const MapControls({
     super.key,
-    required this.isSatellite,
-    required this.onToggleSatellite,
     required this.onResetNorth,
     required this.onRecenter,
   });
@@ -20,20 +15,15 @@ class MapControls extends StatelessWidget {
     return Column(
       children: [
         _MapButton(
-          icon: isSatellite ? Icons.map : Icons.satellite_alt,
-          tooltip: "Alternar Visão",
-          onPressed: onToggleSatellite,
-        ),
-        const SizedBox(height: 8),
-        _MapButton(
           icon: Icons.explore,
           tooltip: "Resetar Norte",
           onPressed: onResetNorth,
         ),
         const SizedBox(height: 8),
+
         _MapButton(
           icon: Icons.my_location,
-          tooltip: "Centralizar no Imóvel",
+          tooltip: "Voltar para o Imóvel",
           onPressed: onRecenter,
         ),
       ],
@@ -47,9 +37,9 @@ class _MapButton extends StatelessWidget {
   final String tooltip;
 
   const _MapButton({
-    required this.icon, 
-    required this.onPressed, 
-    required this.tooltip
+    required this.icon,
+    required this.onPressed,
+    required this.tooltip,
   });
 
   @override
@@ -59,7 +49,7 @@ class _MapButton extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
       child: IconButton(

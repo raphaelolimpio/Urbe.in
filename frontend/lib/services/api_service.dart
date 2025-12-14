@@ -27,6 +27,16 @@ class ApiService {
     }
   }
 
+  Future<List<Imovel>> getImoveis() async {
+    final response = await http.get(Uri.parse('$baseUrl/imoveis/'));
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+      return body.map((dynamic item) => Imovel.fromJson(item)).toList();
+    } else {
+      throw Exception('Falha ao carregar imóveis');
+    }
+  }
+
   Future<Imovel?> cadastrarImovel(Imovel imovel) async {
     final url = Uri.parse('$baseUrl/imoveis/');
     try {
@@ -96,6 +106,21 @@ class ApiService {
     } catch (e) {
       print('Erro de conexão: $e');
       return {"total_imoveis": 0, "valor_patrimonio": 0.0, "potencial_receita": 0.0};
+    }
+  }
+  Future<Map<String, dynamic>> getFinanceOverview(int imovelId) async {
+    final url = Uri.parse('$baseUrl/imoveis/$imovelId/overview');
+    
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        throw Exception('Erro ao carregar financeiro: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Erro de conexão: $e');
     }
   }
 }
