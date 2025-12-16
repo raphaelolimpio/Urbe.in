@@ -11,6 +11,11 @@ class ImovelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLocado = imovel.statusOcupacao == 'locado';
+    final Color statusColor = isLocado ? Colors.green : Colors.red;
+    final String statusText = (imovel.statusOcupacao ?? 'Indefinido').toUpperCase();
+    final IconData statusIcon = isLocado ? Icons.check_circle : Icons.error_outline;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -25,7 +30,40 @@ class ImovelCard extends StatelessWidget {
           ),
           child: const Icon(Icons.business, color: AppColors.primary),
         ),
-        title: Text(imovel.titulo, style: AppTextStyles.titleList),
+        
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(imovel.titulo, style: AppTextStyles.titleList),
+            const SizedBox(height: 6),
+            
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1), 
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: statusColor, width: 0.5), 
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min, 
+                children: [
+                  Icon(statusIcon, size: 12, color: statusColor),
+                  const SizedBox(width: 4),
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+        ),
+        
         subtitle: Text(
           imovel.enderecoCompleto,
           maxLines: 1,

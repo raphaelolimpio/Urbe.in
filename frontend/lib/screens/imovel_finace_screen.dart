@@ -4,6 +4,8 @@ import 'package:frontend/components/finace/finance_executive_summary.dart';
 import 'package:frontend/components/finace/finance_indicators_grid.dart';
 import 'package:frontend/components/finace/rental_simulator_card.dart';
 import 'package:frontend/components/finace/vacancy_risk_card.dart';
+import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/utils/app_formatters.dart';
 import '../models/imovel_model.dart';
 import '../services/api_service.dart';
 import '../core/theme/app_text_styles.dart';
@@ -157,6 +159,158 @@ class _ImovelFinanceScreenState extends State<ImovelFinanceScreen> {
                   ),
 
                   const SizedBox(height: 24),
+                  Text(
+                    "Tendência de Valorização (4 Anos)",
+                    style: AppTextStyles.titleList.copyWith(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+
+                  Container(
+                    height: 180,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final historico = widget.imovel.historicoAlugueis ?? [];
+                        if (historico.isEmpty)
+                          return const Center(
+                            child: Text("Sem histórico disponível"),
+                          );
+
+                        final maxValor = historico.reduce(
+                          (a, b) => a > b ? a : b,
+                        );
+                        final larguraBarra =
+                            (constraints.maxWidth / historico.length) * 0.5;
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: List.generate(historico.length, (index) {
+                            final valor = historico[index];
+                            final alturaDisponivel = constraints.maxHeight - 40;
+                            final alturaBarra =
+                                (valor / maxValor) * alturaDisponivel;
+
+                            final isAtual = index == historico.length - 1;
+
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Builder(
+                                  builder: (context) {
+                                    String textoValor;
+                                    if (valor >= 1000000) {
+                                      double emMilhoes = valor / 1000000;
+                                      textoValor =
+                                          "R\$ ${emMilhoes.toStringAsFixed(emMilhoes % 1 == 0 ? 0 : 1)}M";
+                                    } else {
+                                      double emMilhares = valor / 1000;
+                                      textoValor =
+                                          "R\$ ${emMilhares.toStringAsFixed(emMilhares % 1 == 0 ? 0 : 0)}k";
+                                    }
+                                    return Text(
+                                      textoValor,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: isAtual
+                                            ? AppColors.primary
+                                            : Colors.grey[600],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 4),
+
+                                Container(
+                                  width: larguraBarra,
+                                  height: alturaBarra > 0 ? alturaBarra : 1,
+                                  decoration: BoxDecoration(
+                                    color: isAtual
+                                        ? AppColors.primary
+                                        : Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                Text(
+                                  "${DateTime.now().year - (3 - index)}",
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "Composição de Custos Mensais",
+                    style: AppTextStyles.titleList.copyWith(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildCostRow(
+                            "Condomínio",
+                            widget.imovel.condominio ?? 0,
+                            Colors.orange,
+                          ),
+                          const Divider(),
+                          _buildCostRow(
+                            "IPTU Mensal",
+                            widget.imovel.iptuMensal ?? 0,
+                            Colors.blue,
+                          ),
+                          const Divider(),
+                          _buildCostRow(
+                            "Outras Despesas",
+                            widget.imovel.outrasDespesas ?? 0,
+                            Colors.grey,
+                          ),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Custo Fixo Total",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                AppFormatters.formatCurrency(
+                                  widget.imovel.custoFixoMensal,
+                                ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
 
                   Text(
                     "Fluxo de Caixa",
@@ -208,6 +362,26 @@ class _ImovelFinanceScreenState extends State<ImovelFinanceScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildCostRow(String label, double value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Text(label, style: AppTextStyles.body),
+          ],
+        ),
+        Text(AppFormatters.formatCurrency(value), style: AppTextStyles.body),
+      ],
     );
   }
 }

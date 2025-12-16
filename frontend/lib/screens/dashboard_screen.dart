@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/imovel_model.dart';
+import '../models/dashboard_model.dart';
 import '../services/api_service.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
-import '../core/utils/app_formatters.dart'; // <--- IMPORTANTE
+import '../core/utils/app_formatters.dart';
 import '../components/finance_card.dart';
 import '../components/imovel_card.dart';
 import 'cadastro_imovel_screen.dart';
@@ -18,13 +19,9 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService();
+
+  late Future<DashboardResumo> _dashboardFuture;
   late Future<List<Imovel>> _imoveisFuture;
-  
-  Map<String, dynamic> _metrics = {
-    "total_imoveis": 0, 
-    "valor_patrimonio": 0.0, 
-    "potencial_receita": 0.0
-  };
 
   @override
   void initState() {
@@ -34,25 +31,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _carregarDados() {
     setState(() {
-      _imoveisFuture = _apiService.buscarImoveis();
-    });
-    _apiService.getDashboardMetrics().then((dados) {
-      setState(() => _metrics = dados);
+      _dashboardFuture = _apiService.getDashboardMetrics();
+      _imoveisFuture = _apiService.getImoveis();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tratamento seguro dos valores
-    double patrimonio = double.tryParse(_metrics['valor_patrimonio'].toString()) ?? 0.0;
-    double receita = double.tryParse(_metrics['potencial_receita'].toString()) ?? 0.0;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Urbe.in Investimentos', 
-          style: AppTextStyles.titleList.copyWith(color: AppColors.white, fontSize: 20),
+          'Urbe.in Investimentos',
+          style: AppTextStyles.titleList.copyWith(
+            color: AppColors.white,
+            fontSize: 20,
+          ),
         ),
         backgroundColor: AppColors.primary,
         elevation: 0,
@@ -60,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _carregarDados,
-          )
+          ),
         ],
       ),
       body: Column(
@@ -74,45 +68,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 bottomRight: Radius.circular(24),
               ),
             ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: FinanceCard(
-                        label: "Patrimônio Total", 
-                        // --- FORMATAÇÃO APLICADA ---
-                        value: AppFormatters.formatCurrency(patrimonio),
-                        icon: Icons.account_balance_wallet,
-                      ),
+            child: FutureBuilder<DashboardResumo>(
+              future: _dashboardFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      "Erro ao carregar métricas",
+                      style: TextStyle(color: Colors.white70),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FinanceCard(
-                        label: "Receita Mensal (Est.)", 
-                        // --- FORMATAÇÃO APLICADA ---
-                        value: AppFormatters.formatCurrency(receita),
-                        icon: Icons.trending_up,
+                  );
+                }
+
+                final data = snapshot.data!;
+
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FinanceCard(
+                            label: "Patrimônio Total",
+                            value: AppFormatters.formatCurrency(
+                              data.valorPatrimonio,
+                            ),
+                            icon: Icons.account_balance_wallet,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FinanceCard(
+                            label: "Receita Mensal (Est.)",
+                            value: AppFormatters.formatCurrency(
+                              data.receitaMensalEstimada,
+                            ),
+                            icon: Icons.trending_up,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Text(
+                        "${data.totalImoveis} imóveis sob gestão",
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Text(
-                    "${_metrics['total_imoveis']} imóveis sob gestão",
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.white, 
-                      fontWeight: FontWeight.bold
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ),
 
@@ -124,7 +145,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return const Center(child: CircularProgressIndicator());
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
-                    child: Text('Nenhum imóvel cadastrado.', style: AppTextStyles.body),
+                    child: Text(
+                      'Nenhum imóvel cadastrado.',
+                      style: AppTextStyles.body,
+                    ),
                   );
                 }
 
@@ -136,12 +160,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     return ImovelCard(
                       imovel: imovel,
                       onTap: () async {
-                         // Aguarda o retorno para recarregar caso tenha editado (futuro)
-                         await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => DetalheImovelScreen(imovel: imovel)),
-                          );
-                      }
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                DetalheImovelScreen(imovel: imovel),
+                          ),
+                        );
+                        _carregarDados();
+                      },
                     );
                   },
                 );
@@ -154,7 +181,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () async {
           final bool? recarregar = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CadastroImovelScreen()),
+            MaterialPageRoute(
+              builder: (context) => const CadastroImovelScreen(),
+            ),
           );
           if (recarregar == true) _carregarDados();
         },
